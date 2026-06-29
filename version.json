@@ -1,5 +1,5 @@
 ﻿{
-    "version":  "0.1.4",
-    "notes":  "Fixes GitHub raw hash validation for Windows line endings.",
-    "date":  "2026-06-29T14:56:22"
+    "version":  "0.1.5",
+    "notes":  "Shows a clear release download message when the source ZIP is missing playable files.",
+    "date":  "2026-06-29T15:30:49"
 }

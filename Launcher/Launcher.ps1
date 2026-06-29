@@ -196,6 +196,29 @@ function Test-ProtectedPath {
     return $false
 }
 
+function Get-MissingPlayableFileMessage {
+    param([string]$Kind, [string]$Path)
+    $releaseUrl = 'https://github.com/MarcosNatividade01/Tibia-Remastered-Launcher/releases/latest'
+    $rootPrefix = $Script:Root.TrimEnd('\','/')
+    $isInsidePackage = $false
+    if (-not [string]::IsNullOrWhiteSpace($Path)) {
+        $isInsidePackage = $Path.StartsWith($rootPrefix, [System.StringComparison]::OrdinalIgnoreCase)
+    }
+
+    if ($isInsidePackage) {
+        return @"
+$Kind nao encontrado: $Path
+
+Esta pasta parece ser o ZIP de codigo do GitHub, nao o pacote jogavel.
+Para jogar sem instalar nada, baixe o ZIP pronto em:
+$releaseUrl
+
+Use o arquivo TibiaRemastered-Friends-*.zip da Release, extraia e abra Start Launcher.bat.
+"@
+    }
+
+    return "$Kind nao encontrado: $Path"
+}
 function Get-RequestUrl {
     param([string]$Url)
     if ($Url -match '^https://raw\.githubusercontent\.com/' -and $Url -match '/main/') {
@@ -499,8 +522,8 @@ function Start-Game {
     $config.clientExe = Resolve-LauncherPath ([string]$config.clientExe)
     $config.clientWorkingDirectory = Resolve-LauncherPath ([string]$config.clientWorkingDirectory)
     Initialize-PortableRuntime -Config $config
-    if (-not (Test-Path ([string]$config.serverExe))) { throw "Server exe not found: $($config.serverExe)" }
-    if (-not (Test-Path ([string]$config.clientExe))) { throw "Client exe not found: $($config.clientExe)" }
+    if (-not (Test-Path ([string]$config.serverExe))) { throw (Get-MissingPlayableFileMessage -Kind 'Server exe' -Path ([string]$config.serverExe)) }
+    if (-not (Test-Path ([string]$config.clientExe))) { throw (Get-MissingPlayableFileMessage -Kind 'Client exe' -Path ([string]$config.clientExe)) }
 
     Ensure-DatabaseServer -Config $config -ProgressCallback $ProgressCallback
     Ensure-WebEndpoint -Config $config -ProgressCallback $ProgressCallback
@@ -663,23 +686,4 @@ try {
     if ($NoGui -or $SelfTest -or $Repair -or $Play) { throw }
     [System.Windows.Forms.MessageBox]::Show($_.Exception.Message, 'Launcher error') | Out-Null
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
