@@ -1,5 +1,5 @@
-﻿{
-    "version":  "0.1.8",
-    "notes":  "Source ZIP now bootstraps the playable package automatically.",
-    "date":  "2026-06-29T16:34:43"
+{
+    "version":  "0.1.9",
+    "notes":  "Adds PHP fallback for the local web endpoint when Apache does not open port 80.",
+    "date":  "2026-06-29T19:41:53"
 }

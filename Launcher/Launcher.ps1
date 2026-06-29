@@ -1,4 +1,4 @@
-﻿param(
+param(
     [switch]$SelfTest,
     [switch]$Repair,
     [switch]$Play,
@@ -484,6 +484,66 @@ function Test-LocalPortListening {
     return ($null -ne $open)
 }
 
+function Get-LocalPortOwnerSummary {
+    param([int]$Port)
+    $connections = @(Get-NetTCPConnection -LocalPort $Port -State Listen -ErrorAction SilentlyContinue)
+    if ($connections.Count -eq 0) { return '' }
+    $owners = foreach ($connection in $connections) {
+        try {
+            $process = Get-Process -Id $connection.OwningProcess -ErrorAction Stop
+            '{0} (PID {1})' -f $process.ProcessName, $process.Id
+        } catch {
+            'PID {0}' -f $connection.OwningProcess
+        }
+    }
+    return (($owners | Select-Object -Unique) -join ', ')
+}
+
+function Test-WebEndpointReady {
+    param([int]$Port)
+    try {
+        $body = '{"type":"cacheinfo"}'
+        $response = Invoke-WebRequest -Uri "http://127.0.0.1:$Port/login.php" -Method Post -ContentType 'application/json' -Body $body -UseBasicParsing -TimeoutSec 3
+        if ([int]$response.StatusCode -ne 200) { return $false }
+        $json = [string]$response.Content | ConvertFrom-Json
+        return ($json.PSObject.Properties.Name -contains 'playersonline')
+    } catch {
+        return $false
+    }
+}
+
+function Get-PhpFallbackWebServer {
+    param([object]$Config)
+    $configuredWebServer = Resolve-LauncherPath ([string]$Config.webServerExe)
+    $runtimeRoot = Split-Path -Parent (Split-Path -Parent (Split-Path -Parent $configuredWebServer))
+    $phpExe = Join-Path $runtimeRoot 'php\php.exe'
+    $documentRoot = Join-Path $runtimeRoot 'htdocs'
+    if ((Test-Path -LiteralPath $phpExe) -and (Test-Path -LiteralPath $documentRoot)) {
+        return [pscustomobject]@{ PhpExe = $phpExe; DocumentRoot = $documentRoot }
+    }
+
+    $packagePhp = Join-Path $Script:Root 'Runtime\xampp\php\php.exe'
+    $packageHtdocs = Join-Path $Script:Root 'Runtime\xampp\htdocs'
+    if ((Test-Path -LiteralPath $packagePhp) -and (Test-Path -LiteralPath $packageHtdocs)) {
+        return [pscustomobject]@{ PhpExe = $packagePhp; DocumentRoot = $packageHtdocs }
+    }
+
+    return $null
+}
+
+function Start-PhpFallbackWebEndpoint {
+    param([object]$Config, [int]$Port)
+    $fallback = Get-PhpFallbackWebServer -Config $Config
+    if ($null -eq $fallback) {
+        Write-LauncherLog 'PHP fallback web endpoint not available.' 'WARN'
+        return $false
+    }
+
+    $arguments = '-S 127.0.0.1:{0} -t "{1}"' -f $Port, $fallback.DocumentRoot
+    Write-LauncherLog "Starting PHP fallback web endpoint: $($fallback.PhpExe) $arguments"
+    Start-Process -FilePath $fallback.PhpExe -ArgumentList $arguments -WorkingDirectory $fallback.DocumentRoot -WindowStyle Hidden | Out-Null
+    return $true
+}
 function Ensure-DatabaseServer {
     param([object]$Config, [scriptblock]$ProgressCallback)
     $port = 3306
@@ -527,7 +587,12 @@ function Ensure-WebEndpoint {
     param([object]$Config, [scriptblock]$ProgressCallback)
     $port = 80
     if ($Config.PSObject.Properties.Name -contains 'webServerPort') { $port = [int]$Config.webServerPort }
-    if (Test-LocalPortListening -Port $port) { return }
+    if (Test-WebEndpointReady -Port $port) { return }
+
+    $owner = Get-LocalPortOwnerSummary -Port $port
+    if (-not [string]::IsNullOrWhiteSpace($owner)) {
+        throw "Porta $port ja esta em uso por $owner, mas nao responde como Tibia Remastered. Feche esse programa ou libere a porta $port."
+    }
 
     if (-not ($Config.PSObject.Properties.Name -contains 'webServerExe')) {
         Write-LauncherLog 'Web endpoint port is closed and webServerExe is not configured.' 'WARN'
@@ -535,34 +600,50 @@ function Ensure-WebEndpoint {
     }
 
     $webServerExe = Resolve-LauncherPath ([string]$Config.webServerExe)
-    if ([string]::IsNullOrWhiteSpace($webServerExe)) { return }
-    if (-not (Test-Path $webServerExe)) {
-        Write-LauncherLog "Web server exe not found: $webServerExe" 'WARN'
-        return
-    }
+    $webServerStarted = $false
+    if (-not [string]::IsNullOrWhiteSpace($webServerExe) -and (Test-Path $webServerExe)) {
+        $webServerWorkingDirectory = Split-Path -Parent $webServerExe
+        if ($Config.PSObject.Properties.Name -contains 'webServerWorkingDirectory' -and -not [string]::IsNullOrWhiteSpace([string]$Config.webServerWorkingDirectory)) {
+            $webServerWorkingDirectory = Resolve-LauncherPath ([string]$Config.webServerWorkingDirectory)
+        }
 
-    $webServerWorkingDirectory = Split-Path -Parent $webServerExe
-    if ($Config.PSObject.Properties.Name -contains 'webServerWorkingDirectory' -and -not [string]::IsNullOrWhiteSpace([string]$Config.webServerWorkingDirectory)) {
-        $webServerWorkingDirectory = Resolve-LauncherPath ([string]$Config.webServerWorkingDirectory)
-    }
+        $webServerArguments = ''
+        if ($Config.PSObject.Properties.Name -contains 'webServerArguments') { $webServerArguments = (Resolve-LauncherTokens ([string]$Config.webServerArguments)) }
 
-    $webServerArguments = ''
-    if ($Config.PSObject.Properties.Name -contains 'webServerArguments') { $webServerArguments = (Resolve-LauncherTokens ([string]$Config.webServerArguments)) }
-
-    if ($ProgressCallback) { & $ProgressCallback 'Starting local web endpoint...' 0 }
-    Write-LauncherLog "Starting web endpoint: $webServerExe $webServerArguments"
-    if ([string]::IsNullOrWhiteSpace($webServerArguments)) {
-        Start-Process -FilePath $webServerExe -WorkingDirectory $webServerWorkingDirectory -WindowStyle Hidden | Out-Null
+        if ($ProgressCallback) { & $ProgressCallback 'Starting local web endpoint...' 0 }
+        Write-LauncherLog "Starting web endpoint: $webServerExe $webServerArguments"
+        if ([string]::IsNullOrWhiteSpace($webServerArguments)) {
+            Start-Process -FilePath $webServerExe -WorkingDirectory $webServerWorkingDirectory -WindowStyle Hidden | Out-Null
+        } else {
+            Start-Process -FilePath $webServerExe -ArgumentList $webServerArguments -WorkingDirectory $webServerWorkingDirectory -WindowStyle Hidden | Out-Null
+        }
+        $webServerStarted = $true
     } else {
-        Start-Process -FilePath $webServerExe -ArgumentList $webServerArguments -WorkingDirectory $webServerWorkingDirectory -WindowStyle Hidden | Out-Null
+        Write-LauncherLog "Web server exe not found: $webServerExe" 'WARN'
     }
 
     $timeout = 30
     if ($Config.PSObject.Properties.Name -contains 'webServerStartupTimeoutSeconds') { $timeout = [int]$Config.webServerStartupTimeoutSeconds }
     $deadline = (Get-Date).AddSeconds($timeout)
     while ((Get-Date) -lt $deadline) {
-        if (Test-LocalPortListening -Port $port) { return }
+        if (Test-WebEndpointReady -Port $port) { return }
         Start-Sleep -Seconds 1
+    }
+
+    if ($webServerStarted) {
+        Write-LauncherLog "Apache did not expose a valid endpoint on port $port before timeout; trying PHP fallback." 'WARN'
+    }
+    if (Start-PhpFallbackWebEndpoint -Config $Config -Port $port) {
+        $deadline = (Get-Date).AddSeconds(20)
+        while ((Get-Date) -lt $deadline) {
+            if (Test-WebEndpointReady -Port $port) { return }
+            Start-Sleep -Seconds 1
+        }
+    }
+
+    $owner = Get-LocalPortOwnerSummary -Port $port
+    if (-not [string]::IsNullOrWhiteSpace($owner)) {
+        throw "Web endpoint did not answer on port $port. Current port owner: $owner."
     }
     throw "Web endpoint did not open port $port before timeout."
 }

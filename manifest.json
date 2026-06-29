@@ -1,6 +1,6 @@
 ﻿{
-    "version":  "0.1.8",
-    "generatedAt":  "2026-06-29T16:34:43",
+    "version":  "0.1.9",
+    "generatedAt":  "2026-06-29T19:41:53",
     "files":  [
                   {
                       "path":  "Client/.gitkeep",
@@ -68,8 +68,8 @@
                   },
                   {
                       "path":  "Launcher/Launcher.ps1",
-                      "sha256":  "4b084e31f91e24a516f1c50123de055f6fc8bde0bf81a9b49a19b9df637ea90e",
-                      "size":  34209,
+                      "sha256":  "d9df49ba330d0b1a4edbdc0a0f491d576669a2bd37cd43d6fd848672099d9242",
+                      "size":  37739,
                       "url":  "https://raw.githubusercontent.com/MarcosNatividade01/Tibia-Remastered-Launcher/main/Launcher/Launcher.ps1",
                       "overwrite":  true,
                       "category":  "Launcher"
@@ -132,8 +132,8 @@
                   },
                   {
                       "path":  "Tools/Start-PlayablePackage.ps1",
-                      "sha256":  "93b9ad87dd5c46c5d380af1cc45b2a757c550319b21daeb99eeb6401e8c0b3d0",
-                      "size":  2689,
+                      "sha256":  "17d434516cb820dc407f13835ce1d5fe88316b407dfffbb356ea91409b63c16c",
+                      "size":  9232,
                       "url":  "https://raw.githubusercontent.com/MarcosNatividade01/Tibia-Remastered-Launcher/main/Tools/Start-PlayablePackage.ps1",
                       "overwrite":  true,
                       "category":  "Tools"
