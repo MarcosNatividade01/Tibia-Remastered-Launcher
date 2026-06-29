@@ -1,28 +1,28 @@
 ﻿{
     "remoteVersionUrl":  "https://raw.githubusercontent.com/MarcosNatividade01/Tibia-Remastered-Launcher/main/version.json",
     "remoteManifestUrl":  "https://raw.githubusercontent.com/MarcosNatividade01/Tibia-Remastered-Launcher/main/manifest.json",
-    "serverExe":  "C:\\otserv\\crystalserver.exe",
-    "serverWorkingDirectory":  "C:\\otserv",
+    "serverExe":  "{ROOT}\\Server\\crystalserver.exe",
+    "serverWorkingDirectory":  "{ROOT}\\Server",
     "serverPorts":  [
                         7171,
                         7172
                     ],
     "serverStartupTimeoutSeconds":  300,
-    "clientExe":  "C:\\Users\\marco\\Tibiafriends\\bin\\client-local.exe",
-    "clientWorkingDirectory":  "C:\\Users\\marco\\Tibiafriends",
+    "clientExe":  "{ROOT}\\Client\\bin\\client-local.exe",
+    "clientWorkingDirectory":  "{ROOT}\\Client",
     "preserve":  [
                      "UserData/**",
                      "Logs/**",
                      "Backup/**"
                  ],
-    "databaseExe":  "C:\\xampp\\mysql\\bin\\mysqld.exe",
-    "databaseArguments":  "--defaults-file=C:\\xampp\\mysql\\bin\\my.ini",
-    "databaseWorkingDirectory":  "C:\\xampp\\mysql\\bin",
+    "databaseExe":  "{ROOT}\\Runtime\\xampp\\mysql\\bin\\mysqld.exe",
+    "databaseArguments":  "--defaults-file=\"{ROOT}\\Runtime\\xampp\\mysql\\bin\\my.ini\"",
+    "databaseWorkingDirectory":  "{ROOT}\\Runtime\\xampp\\mysql\\bin",
     "databasePort":  3306,
     "databaseStartupTimeoutSeconds":  60,
-    "webServerExe":  "C:\\xampp\\apache\\bin\\httpd.exe",
+    "webServerExe":  "{ROOT}\\Runtime\\xampp\\apache\\bin\\httpd.exe",
     "webServerArguments":  "",
-    "webServerWorkingDirectory":  "C:\\xampp\\apache\\bin",
+    "webServerWorkingDirectory":  "{ROOT}\\Runtime\\xampp\\apache\\bin",
     "webServerPort":  80,
     "webServerStartupTimeoutSeconds":  30
 }

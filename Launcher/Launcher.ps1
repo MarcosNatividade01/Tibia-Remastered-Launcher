@@ -48,22 +48,22 @@ function Get-LauncherConfig {
     $default = [pscustomobject]@{
         remoteVersionUrl = ''
         remoteManifestUrl = ''
-        serverExe = 'C:\otserv\crystalserver.exe'
-        serverWorkingDirectory = 'C:\otserv'
+        serverExe = '{ROOT}\\Server\\crystalserver.exe'
+        serverWorkingDirectory = '{ROOT}\\Server'
         serverPorts = @(7171, 7172)
         serverStartupTimeoutSeconds = 300
-        databaseExe = 'C:\xampp\mysql\bin\mysqld.exe'
-        databaseArguments = '--defaults-file=C:\xampp\mysql\bin\my.ini'
-        databaseWorkingDirectory = 'C:\xampp\mysql\bin'
+        databaseExe = '{ROOT}\\Runtime\\xampp\\mysql\\bin\\mysqld.exe'
+        databaseArguments = '--defaults-file="{ROOT}\\Runtime\\xampp\\mysql\\bin\\my.ini"'
+        databaseWorkingDirectory = '{ROOT}\\Runtime\\xampp\\mysql\\bin'
         databasePort = 3306
         databaseStartupTimeoutSeconds = 60
-        webServerExe = 'C:\xampp\apache\bin\httpd.exe'
+        webServerExe = '{ROOT}\\Runtime\\xampp\\apache\\bin\\httpd.exe'
         webServerArguments = ''
-        webServerWorkingDirectory = 'C:\xampp\apache\bin'
+        webServerWorkingDirectory = '{ROOT}\\Runtime\\xampp\\apache\\bin'
         webServerPort = 80
         webServerStartupTimeoutSeconds = 30
-        clientExe = (Join-Path $env:USERPROFILE 'Tibiafriends\bin\client-local.exe')
-        clientWorkingDirectory = (Join-Path $env:USERPROFILE 'Tibiafriends')
+        clientExe = '{ROOT}\Client\bin\client-local.exe'
+        clientWorkingDirectory = '{ROOT}\Client'
         preserve = @('UserData/**','Logs/**','Backup/**')
     }
     $path = Join-Path $Script:Root 'Config\launcher-config.json'
@@ -76,17 +76,108 @@ function Get-LauncherConfig {
             $changed = $true
         }
     }
-    $defaultClientDir = Join-Path $env:USERPROFILE 'Tibiafriends'
-    $defaultClientExe = Join-Path $defaultClientDir 'bin\client-local.exe'
-    if (([string]$config.clientExe) -like 'C:\Users\marco\*' -or -not (Test-Path ([string]$config.clientExe))) {
-        $config.clientExe = $defaultClientExe
-        $config.clientWorkingDirectory = $defaultClientDir
+    $portableClientDir = Join-Path $Script:Root 'Client'
+    $portableClientExe = Join-Path $portableClientDir 'bin\client-local.exe'
+    if (([string]$config.clientExe) -like 'C:\Users\marco\*') {
+        $config.clientExe = '{ROOT}\Client\bin\client-local.exe'
+        $config.clientWorkingDirectory = '{ROOT}\Client'
+        $changed = $true
+    }
+    if (-not (Test-Path (Resolve-LauncherPath ([string]$config.clientExe))) -and (Test-Path $portableClientExe)) {
+        $config.clientExe = '{ROOT}\Client\bin\client-local.exe'
+        $config.clientWorkingDirectory = '{ROOT}\Client'
         $changed = $true
     }
     if ($changed) { Save-JsonFile -Path $path -Value $config }
     return $config
 }
 
+function Resolve-LauncherTokens {
+    param([string]$Value)
+    if ([string]::IsNullOrWhiteSpace($Value)) { return $Value }
+    $resolved = $Value.Replace('{ROOT}', $Script:Root).Replace('{USERPROFILE}', $env:USERPROFILE)
+    return [Environment]::ExpandEnvironmentVariables($resolved)
+}
+function Resolve-LauncherPath {
+    param([string]$Path)
+    if ([string]::IsNullOrWhiteSpace($Path)) { return $Path }
+    $resolved = $Path.Replace('{ROOT}', $Script:Root).Replace('{USERPROFILE}', $env:USERPROFILE)
+    $resolved = [Environment]::ExpandEnvironmentVariables($resolved)
+    if ([System.IO.Path]::IsPathRooted($resolved)) { return $resolved }
+    return (Join-Path $Script:Root $resolved)
+}
+
+function Convert-ToForwardSlashPath {
+    param([string]$Path)
+    return (($Path -replace '\\','/') -replace '\\','/')
+}
+
+function Initialize-PortableRuntime {
+    param([object]$Config)
+
+    $runtimeRoot = Join-Path $Script:Root 'Runtime\xampp'
+    if (-not (Test-Path -LiteralPath $runtimeRoot)) { return }
+
+    $runtimeForward = Convert-ToForwardSlashPath -Path $runtimeRoot
+    $apacheRoot = Convert-ToForwardSlashPath -Path (Join-Path $runtimeRoot 'apache')
+    $htdocsRoot = Convert-ToForwardSlashPath -Path (Join-Path $runtimeRoot 'htdocs')
+    $mysqlRoot = Convert-ToForwardSlashPath -Path (Join-Path $runtimeRoot 'mysql')
+    $tmpRoot = Convert-ToForwardSlashPath -Path (Join-Path $runtimeRoot 'tmp')
+
+    New-Item -ItemType Directory -Force -Path (Join-Path $runtimeRoot 'tmp') | Out-Null
+    New-Item -ItemType Directory -Force -Path (Join-Path $runtimeRoot 'apache\logs') | Out-Null
+
+    $mysqlIni = Join-Path $runtimeRoot 'mysql\bin\my.ini'
+    if (Test-Path -LiteralPath $mysqlIni) {
+        $mysqlIniText = Get-Content -LiteralPath $mysqlIni -Raw
+        $mysqlIniText = $mysqlIniText -replace 'C:/xampp/mysql', $mysqlRoot
+        $mysqlIniText = $mysqlIniText -replace 'C:/xampp/tmp', $tmpRoot
+        $mysqlIniText = $mysqlIniText -replace 'C:/xampp', $runtimeForward
+        Set-Content -LiteralPath $mysqlIni -Value $mysqlIniText -Encoding ASCII
+    }
+
+    $httpdConf = Join-Path $runtimeRoot 'apache\conf\httpd.conf'
+    if (Test-Path -LiteralPath $httpdConf) {
+        $httpdText = Get-Content -LiteralPath $httpdConf -Raw
+        $httpdText = $httpdText -replace 'C:/xampp/apache', $apacheRoot
+        $httpdText = $httpdText -replace 'C:/xampp/htdocs', $htdocsRoot
+        $httpdText = $httpdText -replace 'C:/xampp', $runtimeForward
+        $httpdText = $httpdText -replace "(?m)^\s*Include\s+conf/extra/httpd-ssl\.conf\s*$", "# Include conf/extra/httpd-ssl.conf"
+        Set-Content -LiteralPath $httpdConf -Value $httpdText -Encoding ASCII
+    }
+
+    $phpIni = Join-Path $runtimeRoot 'php\php.ini'
+    if (Test-Path -LiteralPath $phpIni) {
+        $phpText = Get-Content -LiteralPath $phpIni -Raw
+        $phpText = $phpText -replace 'C:\\xampp', ($runtimeRoot -replace '\\','\\')
+        $phpText = $phpText -replace 'C:/xampp', $runtimeForward
+        Set-Content -LiteralPath $phpIni -Value $phpText -Encoding ASCII
+    }
+}
+
+function Initialize-PortableDatabase {
+    param([object]$Config)
+
+    $schema = Join-Path $Script:Root 'DatabaseTemplate\otserv-schema-clean.sql'
+    if (-not (Test-Path -LiteralPath $schema)) { return }
+
+    $markerDir = Join-Path $Script:Root 'UserData\Database'
+    $marker = Join-Path $markerDir '.initialized'
+    if (Test-Path -LiteralPath $marker) { return }
+
+    $databaseExe = Resolve-LauncherPath ([string]$Config.databaseExe)
+    $mysqlExe = Join-Path (Split-Path -Parent $databaseExe) 'mysql.exe'
+    if (-not (Test-Path -LiteralPath $mysqlExe)) {
+        Write-LauncherLog "mysql.exe not found for database initialization: $mysqlExe" 'WARN'
+        return
+    }
+
+    Write-LauncherLog 'Initializing clean local otserv database.'
+    & $mysqlExe -uroot -e "CREATE DATABASE IF NOT EXISTS otserv CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
+    Get-Content -LiteralPath $schema | & $mysqlExe -uroot otserv
+    New-Item -ItemType Directory -Force -Path $markerDir | Out-Null
+    Set-Content -LiteralPath $marker -Value (Get-Date).ToString('s') -Encoding ASCII
+}
 function Get-Sha256 {
     param([string]$Path)
     if (-not (Test-Path $Path)) { return $null }
@@ -325,7 +416,7 @@ function Ensure-DatabaseServer {
         return
     }
 
-    $databaseExe = [string]$Config.databaseExe
+    $databaseExe = Resolve-LauncherPath ([string]$Config.databaseExe)
     if ([string]::IsNullOrWhiteSpace($databaseExe)) { return }
     if (-not (Test-Path $databaseExe)) {
         Write-LauncherLog "Database exe not found: $databaseExe" 'WARN'
@@ -334,11 +425,11 @@ function Ensure-DatabaseServer {
 
     $databaseWorkingDirectory = Split-Path -Parent $databaseExe
     if ($Config.PSObject.Properties.Name -contains 'databaseWorkingDirectory' -and -not [string]::IsNullOrWhiteSpace([string]$Config.databaseWorkingDirectory)) {
-        $databaseWorkingDirectory = [string]$Config.databaseWorkingDirectory
+        $databaseWorkingDirectory = Resolve-LauncherPath ([string]$Config.databaseWorkingDirectory)
     }
 
     $databaseArguments = ''
-    if ($Config.PSObject.Properties.Name -contains 'databaseArguments') { $databaseArguments = [string]$Config.databaseArguments }
+    if ($Config.PSObject.Properties.Name -contains 'databaseArguments') { $databaseArguments = (Resolve-LauncherTokens ([string]$Config.databaseArguments)) }
 
     if ($ProgressCallback) { & $ProgressCallback 'Starting local database...' 0 }
     Write-LauncherLog "Starting database: $databaseExe $databaseArguments"
@@ -364,7 +455,7 @@ function Ensure-WebEndpoint {
         return
     }
 
-    $webServerExe = [string]$Config.webServerExe
+    $webServerExe = Resolve-LauncherPath ([string]$Config.webServerExe)
     if ([string]::IsNullOrWhiteSpace($webServerExe)) { return }
     if (-not (Test-Path $webServerExe)) {
         Write-LauncherLog "Web server exe not found: $webServerExe" 'WARN'
@@ -373,11 +464,11 @@ function Ensure-WebEndpoint {
 
     $webServerWorkingDirectory = Split-Path -Parent $webServerExe
     if ($Config.PSObject.Properties.Name -contains 'webServerWorkingDirectory' -and -not [string]::IsNullOrWhiteSpace([string]$Config.webServerWorkingDirectory)) {
-        $webServerWorkingDirectory = [string]$Config.webServerWorkingDirectory
+        $webServerWorkingDirectory = Resolve-LauncherPath ([string]$Config.webServerWorkingDirectory)
     }
 
     $webServerArguments = ''
-    if ($Config.PSObject.Properties.Name -contains 'webServerArguments') { $webServerArguments = [string]$Config.webServerArguments }
+    if ($Config.PSObject.Properties.Name -contains 'webServerArguments') { $webServerArguments = (Resolve-LauncherTokens ([string]$Config.webServerArguments)) }
 
     if ($ProgressCallback) { & $ProgressCallback 'Starting local web endpoint...' 0 }
     Write-LauncherLog "Starting web endpoint: $webServerExe $webServerArguments"
@@ -403,11 +494,17 @@ function Start-Game {
     if ($config.remoteManifestUrl) {
         Invoke-UpdateOrRepair -ProgressCallback $ProgressCallback | Out-Null
     }
+    $config.serverExe = Resolve-LauncherPath ([string]$config.serverExe)
+    $config.serverWorkingDirectory = Resolve-LauncherPath ([string]$config.serverWorkingDirectory)
+    $config.clientExe = Resolve-LauncherPath ([string]$config.clientExe)
+    $config.clientWorkingDirectory = Resolve-LauncherPath ([string]$config.clientWorkingDirectory)
+    Initialize-PortableRuntime -Config $config
     if (-not (Test-Path ([string]$config.serverExe))) { throw "Server exe not found: $($config.serverExe)" }
     if (-not (Test-Path ([string]$config.clientExe))) { throw "Client exe not found: $($config.clientExe)" }
 
     Ensure-DatabaseServer -Config $config -ProgressCallback $ProgressCallback
     Ensure-WebEndpoint -Config $config -ProgressCallback $ProgressCallback
+    Initialize-PortableDatabase -Config $config
 
     $serverPortsOpen = Wait-ServerPorts -Ports @($config.serverPorts) -TimeoutSeconds 1
     if (-not $serverPortsOpen) {
@@ -566,6 +663,11 @@ try {
     if ($NoGui -or $SelfTest -or $Repair -or $Play) { throw }
     [System.Windows.Forms.MessageBox]::Show($_.Exception.Message, 'Launcher error') | Out-Null
 }
+
+
+
+
+
 
 
 

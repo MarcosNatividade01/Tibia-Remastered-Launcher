@@ -2,6 +2,7 @@
     [string]$ClientPath = "$env:USERPROFILE\Tibiafriends",
     [string]$ServerPath = "C:\otserv",
     [string]$WebPath = "C:\xampp\htdocs",
+    [string]$XamppPath = "C:\xampp",
     [string]$OutputRoot = "C:\tmp\TibiaRemastered-Packages",
     [switch]$IncludeClient
 )
@@ -47,8 +48,39 @@ $commonExcludeFiles = @("*.log", "*.bak", "*.tmp", "*.cache", "*.dump", "*.db", 
 
 Write-Host "Building friend package at $stage"
 Copy-Filtered -Source $ServerPath -Destination (Join-Path $stage "Server") -ExcludeDirs $commonExcludeDirs -ExcludeFiles ($commonExcludeFiles + @("otserv.sql", "schema.sql"))
+$runtimeRoot = Join-Path $stage "Runtime\xampp"
+Copy-Filtered -Source (Join-Path $XamppPath "apache") -Destination (Join-Path $runtimeRoot "apache") -ExcludeDirs ($commonExcludeDirs + @("logs")) -ExcludeFiles $commonExcludeFiles
+Copy-Filtered -Source (Join-Path $XamppPath "php") -Destination (Join-Path $runtimeRoot "php") -ExcludeDirs $commonExcludeDirs -ExcludeFiles $commonExcludeFiles
+Copy-Filtered -Source (Join-Path $XamppPath "mysql") -Destination (Join-Path $runtimeRoot "mysql") -ExcludeDirs ($commonExcludeDirs + @("data")) -ExcludeFiles ($commonExcludeFiles + @("*.err", "*.pid"))
+if (Test-Path -LiteralPath (Join-Path $XamppPath "mysql\backup")) {
+    Copy-Filtered -Source (Join-Path $XamppPath "mysql\backup") -Destination (Join-Path $runtimeRoot "mysql\data") -ExcludeDirs $commonExcludeDirs -ExcludeFiles $commonExcludeFiles
+}
+Copy-Filtered -Source $WebPath -Destination (Join-Path $runtimeRoot "htdocs") -ExcludeDirs ($commonExcludeDirs + @("install")) -ExcludeFiles ($commonExcludeFiles + @("config.local.php"))
 Copy-Filtered -Source $WebPath -Destination (Join-Path $stage "Web\htdocs") -ExcludeDirs ($commonExcludeDirs + @("install")) -ExcludeFiles ($commonExcludeFiles + @("config.local.php"))
-Copy-Filtered -Source (Split-Path -Parent $PSScriptRoot) -Destination (Join-Path $stage "Launcher") -ExcludeDirs ($commonExcludeDirs + @("Tools")) -ExcludeFiles $commonExcludeFiles
+Copy-Filtered -Source (Split-Path -Parent $PSScriptRoot) -Destination $stage -ExcludeDirs ($commonExcludeDirs + @("Tools", "Client", "Server", "Web", "Runtime", "DatabaseTemplate", "Database_Template", "Data", "UserData", "Logs", "Backup", "Backups")) -ExcludeFiles $commonExcludeFiles
+$portableConfig = [pscustomobject]@{
+    remoteVersionUrl = ""
+    remoteManifestUrl = ""
+    serverExe = "{ROOT}\Server\crystalserver.exe"
+    serverWorkingDirectory = "{ROOT}\Server"
+    serverPorts = @(7171, 7172)
+    serverStartupTimeoutSeconds = 300
+    clientExe = "{ROOT}\Client\bin\client-local.exe"
+    clientWorkingDirectory = "{ROOT}\Client"
+    databaseExe = "{ROOT}\Runtime\xampp\mysql\bin\mysqld.exe"
+    databaseArguments = "--defaults-file=`"{ROOT}\Runtime\xampp\mysql\bin\my.ini`""
+    databaseWorkingDirectory = "{ROOT}\Runtime\xampp\mysql\bin"
+    databasePort = 3306
+    databaseStartupTimeoutSeconds = 60
+    webServerExe = "{ROOT}\Runtime\xampp\apache\bin\httpd.exe"
+    webServerArguments = ""
+    webServerWorkingDirectory = "{ROOT}\Runtime\xampp\apache\bin"
+    webServerPort = 80
+    webServerStartupTimeoutSeconds = 30
+    preserve = @("UserData/**", "Logs/**", "Backup/**")
+}
+New-Item -ItemType Directory -Force -Path (Join-Path $stage "Config") | Out-Null
+$portableConfig | ConvertTo-Json -Depth 10 | Set-Content -Path (Join-Path $stage "Config\launcher-config.json") -Encoding UTF8
 
 if ($IncludeClient) {
     Copy-Filtered -Source $ClientPath -Destination (Join-Path $stage "Client") -ExcludeDirs $commonExcludeDirs -ExcludeFiles $commonExcludeFiles
@@ -110,25 +142,22 @@ Write-Host "Installation finished. Open Launcher\Start Launcher.bat and click Jo
 Write-TextFile -Path (Join-Path $stage "Scripts\Install-FriendPackage.ps1") -Content $installScript
 
 $readme = @"
-Tibia Remastered - pacote para amigos
+Tibia Remastered - pacote portatil para amigos
 
-Como instalar:
-1. Instale o XAMPP em C:\xampp.
-2. Extraia este ZIP em uma pasta simples, por exemplo C:\TibiaRemastered-Friends.
-3. Abra PowerShell como Administrador.
-4. Rode:
-   powershell -ExecutionPolicy Bypass -File .\Scripts\Install-FriendPackage.ps1
-5. Abra Launcher\Start Launcher.bat.
-6. Clique em Verificar atualizacao ou Atualizar/Reparar.
-7. Clique em Jogar.
+Como jogar:
+1. Extraia este ZIP em uma pasta simples, por exemplo C:\TibiaRemastered-Friends.
+2. Abra Start Launcher.bat.
+3. Clique em Jogar.
 
-O instalador copia:
-- Server para C:\otserv
-- Web para C:\xampp\htdocs
-- Client para %USERPROFILE%\Tibiafriends, se o client foi incluido no pacote
-- DatabaseTemplate\otserv-schema-clean.sql para o banco local otserv
+O launcher inicia automaticamente:
+- MySQL portatil em Runtime\xampp\mysql
+- Apache/PHP portatil em Runtime\xampp\apache
+- Servidor em Server\crystalserver.exe
+- Client em Client\bin\client-local.exe
 
-Este pacote nao inclui contas, personagens, senhas, tokens, logs, backups ou banco real.
+Na primeira execucao, o launcher cria/importa o banco local limpo a partir de DatabaseTemplate\otserv-schema-clean.sql.
+
+Este pacote nao inclui contas reais, personagens reais, senhas, tokens, logs, backups ou banco real.
 "@
 Write-TextFile -Path (Join-Path $stage "LEIA-ME-PRIMEIRO.txt") -Content $readme
 
@@ -142,4 +171,9 @@ if ($tar) {
 }
 Write-Host "Package folder: $stage"
 Write-Host "Package zip: $zip"
+
+
+
+
+
 
