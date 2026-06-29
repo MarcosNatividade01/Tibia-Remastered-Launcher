@@ -1,115 +1,115 @@
 ﻿{
-    "version":  "0.1.3",
-    "generatedAt":  "2026-06-29T12:12:28",
+    "version":  "0.1.4",
+    "generatedAt":  "2026-06-29T14:56:21",
     "files":  [
                   {
                       "path":  "Client/.gitkeep",
-                      "sha256":  "7eb70257593da06f682a3ddda54a9d260d4fc514f645237f5ca74b08f8da61a6",
-                      "size":  2,
+                      "sha256":  "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+                      "size":  1,
                       "url":  "https://raw.githubusercontent.com/MarcosNatividade01/Tibia-Remastered-Launcher/main/Client/.gitkeep",
                       "overwrite":  true,
                       "category":  "Client"
                   },
                   {
                       "path":  "Config/launcher-config.json",
-                      "sha256":  "4de43b7137a8bf30e3d21b12141a2d6c80182fb52f6e6a2ab5c9b7b704d935b2",
-                      "size":  1329,
+                      "sha256":  "3ed563caf0fd6f6fecfdea56d943b8338c63f6ad217cef11e07b9d13ddf26d10",
+                      "size":  1301,
                       "url":  "https://raw.githubusercontent.com/MarcosNatividade01/Tibia-Remastered-Launcher/main/Config/launcher-config.json",
                       "overwrite":  false,
                       "category":  "Config"
                   },
                   {
                       "path":  "Data/.gitkeep",
-                      "sha256":  "7eb70257593da06f682a3ddda54a9d260d4fc514f645237f5ca74b08f8da61a6",
-                      "size":  2,
+                      "sha256":  "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+                      "size":  1,
                       "url":  "https://raw.githubusercontent.com/MarcosNatividade01/Tibia-Remastered-Launcher/main/Data/.gitkeep",
                       "overwrite":  true,
                       "category":  "Data"
                   },
                   {
                       "path":  "Database_Template/.gitkeep",
-                      "sha256":  "7eb70257593da06f682a3ddda54a9d260d4fc514f645237f5ca74b08f8da61a6",
-                      "size":  2,
+                      "sha256":  "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+                      "size":  1,
                       "url":  "https://raw.githubusercontent.com/MarcosNatividade01/Tibia-Remastered-Launcher/main/Database_Template/.gitkeep",
                       "overwrite":  true,
                       "category":  "Database_Template"
                   },
                   {
                       "path":  "Docs/INSTALACAO_AMIGOS.md",
-                      "sha256":  "5382529694c22489493263de2996955ab547df99b798893d9896de19196840b2",
-                      "size":  1024,
+                      "sha256":  "aeefa812d84c164a71e22a772b73a4577d82892e04c7ad97365ef2c19e1c1177",
+                      "size":  1023,
                       "url":  "https://raw.githubusercontent.com/MarcosNatividade01/Tibia-Remastered-Launcher/main/Docs/INSTALACAO_AMIGOS.md",
                       "overwrite":  true,
                       "category":  "Docs"
                   },
                   {
                       "path":  "Docs/PACOTE_AMIGOS.md",
-                      "sha256":  "5d61d95bbe6f6988066a25a5f2c9348289518c4eb9d9e3dec94c54e0822c7176",
-                      "size":  1237,
+                      "sha256":  "eaa0185c58277d15cda3e5a40e47ba82d678b31d5f3fda4d885d0caa84283c9c",
+                      "size":  1236,
                       "url":  "https://raw.githubusercontent.com/MarcosNatividade01/Tibia-Remastered-Launcher/main/Docs/PACOTE_AMIGOS.md",
                       "overwrite":  true,
                       "category":  "Docs"
                   },
                   {
                       "path":  "Docs/PUBLICAR_NOVA_VERSAO.md",
-                      "sha256":  "9fbcf12b29a133d992d58b7e3518eb80be19ff4cc16dcd877eff34a9d4f07f09",
-                      "size":  2393,
+                      "sha256":  "5012845220f146b3daa006921dbf2390331987f3c9bb2b10c6b75348ea937e6b",
+                      "size":  2317,
                       "url":  "https://raw.githubusercontent.com/MarcosNatividade01/Tibia-Remastered-Launcher/main/Docs/PUBLICAR_NOVA_VERSAO.md",
                       "overwrite":  true,
                       "category":  "Docs"
                   },
                   {
                       "path":  "Docs/RELATORIO_LAUNCHER.md",
-                      "sha256":  "ca564d440a388f4e11191f6afc2f9269ea1adfff72104b16b0e1e952d3e77587",
-                      "size":  4048,
+                      "sha256":  "1d6145078cf1cbd01691cebf759800ed378e130bd0a2ff523017bc3c92cf094a",
+                      "size":  3909,
                       "url":  "https://raw.githubusercontent.com/MarcosNatividade01/Tibia-Remastered-Launcher/main/Docs/RELATORIO_LAUNCHER.md",
                       "overwrite":  true,
                       "category":  "Docs"
                   },
                   {
                       "path":  "Launcher/Launcher.ps1",
-                      "sha256":  "eac1636f95e51caa25b7bc563bf423ac1feb6695f48a26f62b9304b7a92cb30c",
-                      "size":  31548,
+                      "sha256":  "27b3a78bedd3332975fdbcfc3b643604c2eeeaa35f478b038713a3ece2538c2e",
+                      "size":  30957,
                       "url":  "https://raw.githubusercontent.com/MarcosNatividade01/Tibia-Remastered-Launcher/main/Launcher/Launcher.ps1",
                       "overwrite":  true,
                       "category":  "Launcher"
                   },
                   {
                       "path":  "Launcher/Tools/Generate-Manifest.ps1",
-                      "sha256":  "6734f120b571ff6ab674114423ab676a7631036bbf86e5bae77efea274d42cad",
-                      "size":  2381,
+                      "sha256":  "933b9dd2f50dde13e7a9641e01eaf1446d28ca6e15c145df340a7426543f1a88",
+                      "size":  3734,
                       "url":  "https://raw.githubusercontent.com/MarcosNatividade01/Tibia-Remastered-Launcher/main/Launcher/Tools/Generate-Manifest.ps1",
                       "overwrite":  true,
                       "category":  "Launcher"
                   },
                   {
                       "path":  "README.md",
-                      "sha256":  "042bbe466bdcdc994f89cb9805049281f7411babe0c7d327c24409ab999373c7",
-                      "size":  1397,
+                      "sha256":  "8236d99b555aabc15be61b56f86c651ba0b5ca59a5cfaa12f07457ff1e301f69",
+                      "size":  1394,
                       "url":  "https://raw.githubusercontent.com/MarcosNatividade01/Tibia-Remastered-Launcher/main/README.md",
                       "overwrite":  true,
                       "category":  "README.md"
                   },
                   {
                       "path":  "Scripts/Check-LocalSetup.ps1",
-                      "sha256":  "42f23b81130decc117dd9b275e3113245a9c5491147ef5753fd3189a6fdcca12",
-                      "size":  833,
+                      "sha256":  "e22dbae105640dfa325d389eac72174d464d165b8d2729d1fda044090aaa381b",
+                      "size":  832,
                       "url":  "https://raw.githubusercontent.com/MarcosNatividade01/Tibia-Remastered-Launcher/main/Scripts/Check-LocalSetup.ps1",
                       "overwrite":  true,
                       "category":  "Scripts"
                   },
                   {
                       "path":  "Scripts/Start-LocalStack.ps1",
-                      "sha256":  "7833bcab5aeb4b9e641687f78d8278c356a71ec763c1ad1f52a3d7c5ff87c4bc",
-                      "size":  1743,
+                      "sha256":  "a5480763e517423785754de00734cec9739411600965d9900b3b5305168a867a",
+                      "size":  1742,
                       "url":  "https://raw.githubusercontent.com/MarcosNatividade01/Tibia-Remastered-Launcher/main/Scripts/Start-LocalStack.ps1",
                       "overwrite":  true,
                       "category":  "Scripts"
                   },
                   {
                       "path":  "Server/.gitkeep",
-                      "sha256":  "7eb70257593da06f682a3ddda54a9d260d4fc514f645237f5ca74b08f8da61a6",
-                      "size":  2,
+                      "sha256":  "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+                      "size":  1,
                       "url":  "https://raw.githubusercontent.com/MarcosNatividade01/Tibia-Remastered-Launcher/main/Server/.gitkeep",
                       "overwrite":  true,
                       "category":  "Server"
@@ -124,8 +124,8 @@
                   },
                   {
                       "path":  "Tools/Build-FriendPackage.ps1",
-                      "sha256":  "9a82f46dc3f2b1095de3d84ecaa7efbea89d4c319fdac696562ccd15247567ba",
-                      "size":  8873,
+                      "sha256":  "dd12a40ee625dfaac5ad3342c8f0170f86a0dd4aec976f9563b0958f3cbb1b8d",
+                      "size":  8863,
                       "url":  "https://raw.githubusercontent.com/MarcosNatividade01/Tibia-Remastered-Launcher/main/Tools/Build-FriendPackage.ps1",
                       "overwrite":  true,
                       "category":  "Tools"
