@@ -273,20 +273,33 @@ function Get-RequestUrl {
 }
 function Get-GitHubRequestHeaders {
     param([string]$Url)
-    if ($Url -notmatch '(^https://raw\.githubusercontent\.com/|^https://api\.github\.com/)') { return @{} }
+    if ($Url -match '^https://raw\.githubusercontent\.com/') {
+        return @{
+            'User-Agent' = 'TibiaRemasteredLauncher'
+            'Cache-Control' = 'no-cache'
+            Pragma = 'no-cache'
+        }
+    }
+    if ($Url -notmatch '^https://api\.github\.com/') { return @{} }
     try {
         $token = (& gh auth token 2>$null)
         if (-not [string]::IsNullOrWhiteSpace($token)) {
             return @{
                 Authorization = "Bearer $token"
                 'User-Agent' = 'TibiaRemasteredLauncher'
-                Accept = 'application/vnd.github.raw'
+                Accept = 'application/vnd.github+json'
+                'Cache-Control' = 'no-cache'
+                Pragma = 'no-cache'
             }
         }
     } catch {
         Write-LauncherLog "GitHub auth token unavailable: $($_.Exception.Message)" 'WARN'
     }
-    return @{}
+    return @{
+        'User-Agent' = 'TibiaRemasteredLauncher'
+        'Cache-Control' = 'no-cache'
+        Pragma = 'no-cache'
+    }
 }
 function Get-RemoteJson {
     param([string]$Url)
