@@ -1,5 +1,5 @@
 ﻿{
-    "version":  "0.1.1",
-    "updatedAt":  "2026-06-29T10:51:09",
-    "channel":  "public"
+    "version":  "0.1.2",
+    "notes":  "Adds friend package builder and install documentation.",
+    "date":  "2026-06-29T11:20:29"
 }

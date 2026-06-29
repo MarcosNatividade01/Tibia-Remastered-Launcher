@@ -4,15 +4,20 @@ Launcher publico do Tibia Remastered para preparar atualizacoes, iniciar MySQL, 
 
 ## Para jogar
 
-1. Baixe este repositorio em `Code > Download ZIP`.
-2. Extraia em uma pasta simples, por exemplo `C:\TibiaRemastered`.
-3. Instale o XAMPP em `C:\xampp`.
-4. Copie os arquivos do servidor para `C:\otserv`.
-5. Copie os arquivos do client para `C:\Users\%USERNAME%\Tibiafriends`.
-6. Abra `Start Launcher.bat`.
+Para jogar em outro PC, use um pacote gerado pelo script `Tools\Build-FriendPackage.ps1`.
+
+Resumo:
+
+1. No seu PC, rode `Tools\Build-FriendPackage.ps1` para gerar o ZIP em `C:\tmp\TibiaRemastered-Packages`.
+2. Envie esse ZIP para seu amigo.
+3. No PC do amigo, instale o XAMPP em `C:\xampp`.
+4. Extraia o ZIP.
+5. Rode `Scripts\Install-FriendPackage.ps1` como Administrador.
+6. Abra `Launcher\Start Launcher.bat`.
 7. Clique em `Atualizar/Reparar`.
 8. Clique em `Jogar`.
 
+Veja o guia completo em `Docs\PACOTE_AMIGOS.md`.
 ## Caminhos usados pelo launcher
 
 - MySQL: `C:\xampp\mysql\bin\mysqld.exe`
@@ -54,3 +59,4 @@ Por seguranca e privacidade, nao versionamos:
 ## Observacao sobre client e assets
 
 Os arquivos completos do client e assets devem ser distribuidos apenas se voce tiver direito de redistribuicao. Este repositorio publico foi preparado para o launcher e estrutura segura.
+

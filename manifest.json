@@ -1,6 +1,6 @@
 ﻿{
-    "version":  "0.1.1",
-    "generatedAt":  "2026-06-29T10:50:58",
+    "version":  "0.1.2",
+    "generatedAt":  "2026-06-29T11:20:29",
     "files":  [
                   {
                       "path":  "Client/.gitkeep",
@@ -12,8 +12,8 @@
                   },
                   {
                       "path":  "Config/launcher-config.json",
-                      "sha256":  "dbffeafa47835021fead918b23eb510fcd20072b16a93d761fc242fe5c4201cb",
-                      "size":  1278,
+                      "sha256":  "84fed8d393b2f76acb9f3447cb5c17b11e0be7866e202d857c2c7da13e1163ac",
+                      "size":  1284,
                       "url":  "https://raw.githubusercontent.com/MarcosNatividade01/Tibia-Remastered-Launcher/main/Config/launcher-config.json",
                       "overwrite":  false,
                       "category":  "Config"
@@ -39,6 +39,14 @@
                       "sha256":  "5382529694c22489493263de2996955ab547df99b798893d9896de19196840b2",
                       "size":  1024,
                       "url":  "https://raw.githubusercontent.com/MarcosNatividade01/Tibia-Remastered-Launcher/main/Docs/INSTALACAO_AMIGOS.md",
+                      "overwrite":  true,
+                      "category":  "Docs"
+                  },
+                  {
+                      "path":  "Docs/PACOTE_AMIGOS.md",
+                      "sha256":  "0d2726b73eed5e584ad47334e770689b95fc99f97e26e846b748c9d0fc753a99",
+                      "size":  1325,
+                      "url":  "https://raw.githubusercontent.com/MarcosNatividade01/Tibia-Remastered-Launcher/main/Docs/PACOTE_AMIGOS.md",
                       "overwrite":  true,
                       "category":  "Docs"
                   },
@@ -76,8 +84,8 @@
                   },
                   {
                       "path":  "README.md",
-                      "sha256":  "99fe76ece379ab42fc5a1708fee1169e01a25db675e4958ebae93537cf43de86",
-                      "size":  1393,
+                      "sha256":  "13a92cadf7b006c24d1aa4527d722176386966b0df619a699c9be5020d16f788",
+                      "size":  1549,
                       "url":  "https://raw.githubusercontent.com/MarcosNatividade01/Tibia-Remastered-Launcher/main/README.md",
                       "overwrite":  true,
                       "category":  "README.md"
@@ -113,6 +121,14 @@
                       "url":  "https://raw.githubusercontent.com/MarcosNatividade01/Tibia-Remastered-Launcher/main/Start%20Launcher.bat",
                       "overwrite":  true,
                       "category":  "Start Launcher.bat"
+                  },
+                  {
+                      "path":  "Tools/Build-FriendPackage.ps1",
+                      "sha256":  "8dfd860928d7aa64191827f2bec085710003d249249b6a75627cafb2d869d79a",
+                      "size":  6679,
+                      "url":  "https://raw.githubusercontent.com/MarcosNatividade01/Tibia-Remastered-Launcher/main/Tools/Build-FriendPackage.ps1",
+                      "overwrite":  true,
+                      "category":  "Tools"
                   }
               ]
 }
