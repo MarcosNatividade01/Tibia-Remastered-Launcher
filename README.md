@@ -4,13 +4,23 @@ Launcher publico do Tibia Remastered para preparar atualizacoes, iniciar MySQL, 
 
 ## Para jogar
 
-Para o amigo jogar sem instalar XAMPP, gere o pacote portatil com:
+Baixe o pacote pronto na pagina de Releases:
+
+https://github.com/MarcosNatividade01/Tibia-Remastered-Launcher/releases/latest
+
+Use o arquivo `TibiaRemastered-Friends-*.zip`. Extraia o ZIP, abra `Start Launcher.bat` e clique em `Jogar`.
+
+Nao use o botao `Code > Download ZIP` para jogar. Esse ZIP do GitHub contem apenas o codigo do launcher e nao inclui client, servidor e runtime portatil.
+
+## Gerar novo pacote portatil
+
+Para gerar um pacote atualizado a partir desta maquina:
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\Tools\Build-FriendPackage.ps1 -IncludeClient
 ```
 
-Isso cria um ZIP em `C:\tmp\TibiaRemastered-Packages`. O amigo so precisa extrair o ZIP, abrir `Start Launcher.bat` e clicar em `Jogar`.
+Isso cria um ZIP em `C:\tmp\TibiaRemastered-Packages`.
 
 Veja o guia completo em `Docs\PACOTE_AMIGOS.md`.
 
@@ -55,5 +65,4 @@ Por seguranca e privacidade, nao versionamos:
 ## Observacao sobre client e assets
 
 Os arquivos completos do client e assets devem ser distribuidos apenas se voce tiver direito de redistribuicao. Este repositorio publico foi preparado para o launcher e estrutura segura.
-
 

@@ -1,6 +1,6 @@
 ﻿{
     "version":  "0.1.4",
-    "generatedAt":  "2026-06-29T14:56:21",
+    "generatedAt":  "2026-06-29T15:17:58",
     "files":  [
                   {
                       "path":  "Client/.gitkeep",
@@ -84,8 +84,8 @@
                   },
                   {
                       "path":  "README.md",
-                      "sha256":  "8236d99b555aabc15be61b56f86c651ba0b5ca59a5cfaa12f07457ff1e301f69",
-                      "size":  1394,
+                      "sha256":  "57454616fa703077d0c185dff69f8263c7d27856ce6367500d78d61ce3e769c9",
+                      "size":  1723,
                       "url":  "https://raw.githubusercontent.com/MarcosNatividade01/Tibia-Remastered-Launcher/main/README.md",
                       "overwrite":  true,
                       "category":  "README.md"
