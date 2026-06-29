@@ -92,6 +92,49 @@ function Get-LauncherConfig {
     return $config
 }
 
+function Use-InstalledLocalPathsIfAvailable {
+    param([object]$Config)
+
+    $portableServer = Resolve-LauncherPath ([string]$Config.serverExe)
+    $portableClient = Resolve-LauncherPath ([string]$Config.clientExe)
+    $portableDatabase = Resolve-LauncherPath ([string]$Config.databaseExe)
+    $portableWebServer = Resolve-LauncherPath ([string]$Config.webServerExe)
+    $changed = $false
+
+    if ((-not (Test-Path -LiteralPath $portableServer)) -and (Test-Path -LiteralPath 'C:\otserv\crystalserver.exe')) {
+        $Config.serverExe = 'C:\otserv\crystalserver.exe'
+        $Config.serverWorkingDirectory = 'C:\otserv'
+        $changed = $true
+    }
+
+    $installedClient = Join-Path $env:USERPROFILE 'Tibiafriends\bin\client-local.exe'
+    if ((-not (Test-Path -LiteralPath $portableClient)) -and (Test-Path -LiteralPath $installedClient)) {
+        $Config.clientExe = '{USERPROFILE}\Tibiafriends\bin\client-local.exe'
+        $Config.clientWorkingDirectory = '{USERPROFILE}\Tibiafriends'
+        $changed = $true
+    }
+
+    if ((-not (Test-Path -LiteralPath $portableDatabase)) -and (Test-Path -LiteralPath 'C:\xampp\mysql\bin\mysqld.exe')) {
+        $Config.databaseExe = 'C:\xampp\mysql\bin\mysqld.exe'
+        $Config.databaseArguments = '--defaults-file="C:\xampp\mysql\bin\my.ini"'
+        $Config.databaseWorkingDirectory = 'C:\xampp\mysql\bin'
+        $changed = $true
+    }
+
+    if ((-not (Test-Path -LiteralPath $portableWebServer)) -and (Test-Path -LiteralPath 'C:\xampp\apache\bin\httpd.exe')) {
+        $Config.webServerExe = 'C:\xampp\apache\bin\httpd.exe'
+        $Config.webServerArguments = ''
+        $Config.webServerWorkingDirectory = 'C:\xampp\apache\bin'
+        $changed = $true
+    }
+
+    if ($changed) {
+        Save-JsonFile -Path (Join-Path $Script:Root 'Config\launcher-config.json') -Value $Config
+        Write-LauncherLog 'Using installed local paths because portable package files were not found.'
+    }
+
+    return $Config
+}
 function Resolve-LauncherTokens {
     param([string]$Value)
     if ([string]::IsNullOrWhiteSpace($Value)) { return $Value }
@@ -514,6 +557,7 @@ function Start-Game {
     param([scriptblock]$ProgressCallback)
     Initialize-FirstRun
     $config = Get-LauncherConfig
+    $config = Use-InstalledLocalPathsIfAvailable -Config $config
     if ($config.remoteManifestUrl) {
         Invoke-UpdateOrRepair -ProgressCallback $ProgressCallback | Out-Null
     }

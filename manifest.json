@@ -1,6 +1,6 @@
 ﻿{
-    "version":  "0.1.5",
-    "generatedAt":  "2026-06-29T15:31:24",
+    "version":  "0.1.6",
+    "generatedAt":  "2026-06-29T15:39:24",
     "files":  [
                   {
                       "path":  "Client/.gitkeep",
@@ -68,8 +68,8 @@
                   },
                   {
                       "path":  "Launcher/Launcher.ps1",
-                      "sha256":  "e2bb6401278c6694ed3276b7d1d29ca47e1b2e4f66def21b6213aad50729df6e",
-                      "size":  31798,
+                      "sha256":  "7b4638cb98e08192263e7bc15f30efe6f92b7982c39bcec3ed6874e643b01f84",
+                      "size":  33825,
                       "url":  "https://raw.githubusercontent.com/MarcosNatividade01/Tibia-Remastered-Launcher/main/Launcher/Launcher.ps1",
                       "overwrite":  true,
                       "category":  "Launcher"
