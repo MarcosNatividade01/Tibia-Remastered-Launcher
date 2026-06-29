@@ -1,76 +1,56 @@
 ﻿# Tibia Remastered Launcher
 
-Launcher/updater com verificacao por SHA256, backup antes de substituir arquivos e preservacao de UserData, Logs e Backup.
+Launcher publico do Tibia Remastered para preparar atualizacoes, iniciar MySQL, Apache, servidor local e abrir o client.
 
-## Como abrir
+## Para jogar
 
-Execute `Start Launcher.bat`.
+1. Baixe este repositorio em `Code > Download ZIP`.
+2. Extraia em uma pasta simples, por exemplo `C:\TibiaRemastered`.
+3. Instale o XAMPP em `C:\xampp`.
+4. Copie os arquivos do servidor para `C:\otserv`.
+5. Copie os arquivos do client para `C:\Users\%USERNAME%\Tibiafriends`.
+6. Abra `Start Launcher.bat`.
+7. Clique em `Atualizar/Reparar`.
+8. Clique em `Jogar`.
 
-## Como configurar GitHub
+## Caminhos usados pelo launcher
 
-Edite `Config/launcher-config.json`:
+- MySQL: `C:\xampp\mysql\bin\mysqld.exe`
+- Apache: `C:\xampp\apache\bin\httpd.exe`
+- Servidor: `C:\otserv\crystalserver.exe`
+- Client: `C:\Users\%USERNAME%\Tibiafriends\bin\client-local.exe`
 
-- `remoteVersionUrl`: URL raw do `version.json` no GitHub ou Release.
-- `remoteManifestUrl`: URL raw do `manifest.json`.
-- `serverExe`: executavel do servidor local.
-- `clientExe`: executavel do cliente local.
+## Portas locais
 
-Exemplo raw GitHub:
+- Apache/MyAAC: `80`
+- MySQL: `3306`
+- Login: `7171`
+- Game: `7172`
 
-`https://raw.githubusercontent.com/USUARIO/REPO/main/version.json`
-`https://raw.githubusercontent.com/USUARIO/REPO/main/manifest.json`
+## O que este repositorio contem
 
-Para arquivos grandes, publique em GitHub Releases e coloque as URLs de download no manifest.
+- Launcher
+- Auto-update
+- Manifest
+- Documentacao
+- Scripts de verificacao
+- Estrutura base
 
-## Gerar manifest
+## O que nao entra no GitHub
 
-Use:
+Por seguranca e privacidade, nao versionamos:
 
-```powershell
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\Launcher\Tools\Generate-Manifest.ps1 -Version "0.1.1" -RawBaseUrl "https://raw.githubusercontent.com/USUARIO/REPO/main"
-```
+- Contas reais
+- Personagens reais
+- Banco de dados real
+- Senhas
+- Tokens
+- Chaves
+- Logs
+- Backups
+- Cache
+- Saves
 
-O script ignora `UserData`, `Logs`, `Backup`, temporarios, cache, crash dumps e arquivos sensiveis.
+## Observacao sobre client e assets
 
-## Publicar nova versao
-
-1. Atualize arquivos publicaveis em `Client`, `Server`, `Data`, `Config`, `Launcher` ou `Docs`.
-2. Gere o manifest.
-3. Publique `manifest.json`, `version.json` e arquivos no GitHub.
-4. Para arquivos grandes, use GitHub Releases e ajuste URLs no manifest.
-
-## Como o update funciona
-
-Para cada arquivo do manifest:
-
-1. Calcula SHA256 local.
-2. Compara com SHA256 remoto.
-3. Baixa apenas se ausente ou diferente.
-4. Valida SHA256 apos download.
-5. Faz backup antes de substituir.
-6. Se falhar, restaura backup automaticamente.
-
-## Arquivos protegidos
-
-Nunca sobrescreve automaticamente:
-
-- UserData/
-- Logs/
-- Backup/
-- banco real
-- saves
-- configs pessoais locais
-
-## Reparar arquivos
-
-Clique em `Atualizar/Reparar` no Launcher. Ele recalcula hashes e baixa arquivos corrompidos ou ausentes.
-
-## Jogar
-
-Clique em `Jogar`. O Launcher verifica update, inicia o servidor local, espera as portas configuradas e abre o cliente.
-
-## Limitacoes
-
-- O link do GitHub precisa ser configurado manualmente uma vez em `launcher-config.json`.
-- Esta primeira versao usa PowerShell/WinForms para simplicidade e facil manutencao.
-- O launcher nao instala MySQL/XAMPP/MyAAC; ele parte da estrutura local ja existente ou dos arquivos publicados no manifest.
+Os arquivos completos do client e assets devem ser distribuidos apenas se voce tiver direito de redistribuicao. Este repositorio publico foi preparado para o launcher e estrutura segura.

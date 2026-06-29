@@ -11,6 +11,7 @@ $ErrorActionPreference = 'Stop'
 $Script:Root = Split-Path -Parent (Split-Path -Parent $MyInvocation.MyCommand.Path)
 $Script:LogFile = Join-Path $Script:Root ('Logs\launcher_' + (Get-Date -Format 'yyyy-MM-dd') + '.log')
 $Script:ProtectedRoots = @('UserData','Logs','Backup')
+$Script:ProtectedFiles = @('.gitignore','.gitattributes','manifest.json','version.json')
 
 function Write-LauncherLog {
     param([string]$Message, [string]$Level = 'INFO')
@@ -50,14 +51,40 @@ function Get-LauncherConfig {
         serverExe = 'C:\otserv\crystalserver.exe'
         serverWorkingDirectory = 'C:\otserv'
         serverPorts = @(7171, 7172)
-        serverStartupTimeoutSeconds = 120
-        clientExe = 'C:\Users\marco\Tibiafriends\bin\client-local.exe'
-        clientWorkingDirectory = 'C:\Users\marco\Tibiafriends'
+        serverStartupTimeoutSeconds = 300
+        databaseExe = 'C:\xampp\mysql\bin\mysqld.exe'
+        databaseArguments = '--defaults-file=C:\xampp\mysql\bin\my.ini'
+        databaseWorkingDirectory = 'C:\xampp\mysql\bin'
+        databasePort = 3306
+        databaseStartupTimeoutSeconds = 60
+        webServerExe = 'C:\xampp\apache\bin\httpd.exe'
+        webServerArguments = ''
+        webServerWorkingDirectory = 'C:\xampp\apache\bin'
+        webServerPort = 80
+        webServerStartupTimeoutSeconds = 30
+        clientExe = (Join-Path $env:USERPROFILE 'Tibiafriends\bin\client-local.exe')
+        clientWorkingDirectory = (Join-Path $env:USERPROFILE 'Tibiafriends')
         preserve = @('UserData/**','Logs/**','Backup/**')
     }
     $path = Join-Path $Script:Root 'Config\launcher-config.json'
     if (-not (Test-Path $path)) { Save-JsonFile -Path $path -Value $default }
-    return Read-JsonFile -Path $path -Default $default
+    $config = Read-JsonFile -Path $path -Default $default
+    $changed = $false
+    foreach ($property in $default.PSObject.Properties) {
+        if (-not ($config.PSObject.Properties.Name -contains $property.Name)) {
+            $config | Add-Member -NotePropertyName $property.Name -NotePropertyValue $property.Value
+            $changed = $true
+        }
+    }
+    $defaultClientDir = Join-Path $env:USERPROFILE 'Tibiafriends'
+    $defaultClientExe = Join-Path $defaultClientDir 'bin\client-local.exe'
+    if (([string]$config.clientExe) -like 'C:\Users\marco\*' -or -not (Test-Path ([string]$config.clientExe))) {
+        $config.clientExe = $defaultClientExe
+        $config.clientWorkingDirectory = $defaultClientDir
+        $changed = $true
+    }
+    if ($changed) { Save-JsonFile -Path $path -Value $config }
+    return $config
 }
 
 function Get-Sha256 {
@@ -69,17 +96,48 @@ function Get-Sha256 {
 function Test-ProtectedPath {
     param([string]$RelativePath)
     $norm = ($RelativePath -replace '\\','/').TrimStart('/')
+    foreach ($fileName in $Script:ProtectedFiles) {
+        if ($norm -ieq $fileName) { return $true }
+    }
     foreach ($root in $Script:ProtectedRoots) {
         if ($norm -ieq $root -or $norm.StartsWith($root + '/', [System.StringComparison]::OrdinalIgnoreCase)) { return $true }
     }
     return $false
 }
 
+function Get-RequestUrl {
+    param([string]$Url)
+    if ($Url -match '^https://raw\.githubusercontent\.com/' -and $Url -match '/main/') {
+        $separator = '?'
+        if ($Url.Contains('?')) { $separator = '&' }
+        return $Url + $separator + 'cb=' + [DateTimeOffset]::UtcNow.ToUnixTimeMilliseconds()
+    }
+    return $Url
+}
+function Get-GitHubRequestHeaders {
+    param([string]$Url)
+    if ($Url -notmatch '(^https://raw\.githubusercontent\.com/|^https://api\.github\.com/)') { return @{} }
+    try {
+        $token = (& gh auth token 2>$null)
+        if (-not [string]::IsNullOrWhiteSpace($token)) {
+            return @{
+                Authorization = "Bearer $token"
+                'User-Agent' = 'TibiaRemasteredLauncher'
+                Accept = 'application/vnd.github.raw'
+            }
+        }
+    } catch {
+        Write-LauncherLog "GitHub auth token unavailable: $($_.Exception.Message)" 'WARN'
+    }
+    return @{}
+}
 function Get-RemoteJson {
     param([string]$Url)
     if ([string]::IsNullOrWhiteSpace($Url)) { throw 'Remote URL is not configured.' }
     Write-LauncherLog "Downloading json: $Url"
-    $response = Invoke-WebRequest -Uri $Url -UseBasicParsing -TimeoutSec 30
+    $headers = Get-GitHubRequestHeaders $Url
+    $requestUrl = Get-RequestUrl $Url
+    $response = Invoke-WebRequest -Uri $requestUrl -Headers $headers -UseBasicParsing -TimeoutSec 30
     $raw = [string]$response.Content
     $raw = $raw.TrimStart([char]0xFEFF)
     if ($raw.StartsWith('ï»¿')) { $raw = $raw.Substring(3) }
@@ -91,7 +149,9 @@ function Test-InternetConnection {
     param([string]$Url)
     try {
         if ([string]::IsNullOrWhiteSpace($Url)) { return $false }
-        Invoke-WebRequest -Uri $Url -UseBasicParsing -Method Head -TimeoutSec 12 | Out-Null
+        $headers = Get-GitHubRequestHeaders $Url
+        $requestUrl = Get-RequestUrl $Url
+        Invoke-WebRequest -Uri $requestUrl -Headers $headers -UseBasicParsing -Method Head -TimeoutSec 12 | Out-Null
         return $true
     } catch {
         Write-LauncherLog "Internet/remote check failed: $($_.Exception.Message)" 'WARN'
@@ -153,7 +213,8 @@ function Download-ManifestFile {
     $tmp = $target + '.download'
     if (Test-Path $tmp) { Remove-Item -Path $tmp -Force }
 
-    Invoke-WebRequest -Uri ([string]$FileEntry.url) -OutFile $tmp -UseBasicParsing -TimeoutSec 120
+    $headers = Get-GitHubRequestHeaders ([string]$FileEntry.url)
+    Invoke-WebRequest -Uri ([string]$FileEntry.url) -Headers $headers -OutFile $tmp -UseBasicParsing -TimeoutSec 120
     $hash = Get-Sha256 $tmp
     $expected = ([string]$FileEntry.sha256).ToLowerInvariant()
     if ($hash -ne $expected) {
@@ -247,6 +308,94 @@ function Wait-ServerPorts {
     return $false
 }
 
+function Test-LocalPortListening {
+    param([int]$Port)
+    $open = Get-NetTCPConnection -LocalPort $Port -State Listen -ErrorAction SilentlyContinue
+    return ($null -ne $open)
+}
+
+function Ensure-DatabaseServer {
+    param([object]$Config, [scriptblock]$ProgressCallback)
+    $port = 3306
+    if ($Config.PSObject.Properties.Name -contains 'databasePort') { $port = [int]$Config.databasePort }
+    if (Test-LocalPortListening -Port $port) { return }
+
+    if (-not ($Config.PSObject.Properties.Name -contains 'databaseExe')) {
+        Write-LauncherLog 'Database port is closed and databaseExe is not configured.' 'WARN'
+        return
+    }
+
+    $databaseExe = [string]$Config.databaseExe
+    if ([string]::IsNullOrWhiteSpace($databaseExe)) { return }
+    if (-not (Test-Path $databaseExe)) {
+        Write-LauncherLog "Database exe not found: $databaseExe" 'WARN'
+        return
+    }
+
+    $databaseWorkingDirectory = Split-Path -Parent $databaseExe
+    if ($Config.PSObject.Properties.Name -contains 'databaseWorkingDirectory' -and -not [string]::IsNullOrWhiteSpace([string]$Config.databaseWorkingDirectory)) {
+        $databaseWorkingDirectory = [string]$Config.databaseWorkingDirectory
+    }
+
+    $databaseArguments = ''
+    if ($Config.PSObject.Properties.Name -contains 'databaseArguments') { $databaseArguments = [string]$Config.databaseArguments }
+
+    if ($ProgressCallback) { & $ProgressCallback 'Starting local database...' 0 }
+    Write-LauncherLog "Starting database: $databaseExe $databaseArguments"
+    Start-Process -FilePath $databaseExe -ArgumentList $databaseArguments -WorkingDirectory $databaseWorkingDirectory -WindowStyle Hidden | Out-Null
+
+    $timeout = 60
+    if ($Config.PSObject.Properties.Name -contains 'databaseStartupTimeoutSeconds') { $timeout = [int]$Config.databaseStartupTimeoutSeconds }
+    $deadline = (Get-Date).AddSeconds($timeout)
+    while ((Get-Date) -lt $deadline) {
+        if (Test-LocalPortListening -Port $port) { return }
+        Start-Sleep -Seconds 1
+    }
+    throw "Database did not open port $port before timeout."
+}
+function Ensure-WebEndpoint {
+    param([object]$Config, [scriptblock]$ProgressCallback)
+    $port = 80
+    if ($Config.PSObject.Properties.Name -contains 'webServerPort') { $port = [int]$Config.webServerPort }
+    if (Test-LocalPortListening -Port $port) { return }
+
+    if (-not ($Config.PSObject.Properties.Name -contains 'webServerExe')) {
+        Write-LauncherLog 'Web endpoint port is closed and webServerExe is not configured.' 'WARN'
+        return
+    }
+
+    $webServerExe = [string]$Config.webServerExe
+    if ([string]::IsNullOrWhiteSpace($webServerExe)) { return }
+    if (-not (Test-Path $webServerExe)) {
+        Write-LauncherLog "Web server exe not found: $webServerExe" 'WARN'
+        return
+    }
+
+    $webServerWorkingDirectory = Split-Path -Parent $webServerExe
+    if ($Config.PSObject.Properties.Name -contains 'webServerWorkingDirectory' -and -not [string]::IsNullOrWhiteSpace([string]$Config.webServerWorkingDirectory)) {
+        $webServerWorkingDirectory = [string]$Config.webServerWorkingDirectory
+    }
+
+    $webServerArguments = ''
+    if ($Config.PSObject.Properties.Name -contains 'webServerArguments') { $webServerArguments = [string]$Config.webServerArguments }
+
+    if ($ProgressCallback) { & $ProgressCallback 'Starting local web endpoint...' 0 }
+    Write-LauncherLog "Starting web endpoint: $webServerExe $webServerArguments"
+    if ([string]::IsNullOrWhiteSpace($webServerArguments)) {
+        Start-Process -FilePath $webServerExe -WorkingDirectory $webServerWorkingDirectory -WindowStyle Hidden | Out-Null
+    } else {
+        Start-Process -FilePath $webServerExe -ArgumentList $webServerArguments -WorkingDirectory $webServerWorkingDirectory -WindowStyle Hidden | Out-Null
+    }
+
+    $timeout = 30
+    if ($Config.PSObject.Properties.Name -contains 'webServerStartupTimeoutSeconds') { $timeout = [int]$Config.webServerStartupTimeoutSeconds }
+    $deadline = (Get-Date).AddSeconds($timeout)
+    while ((Get-Date) -lt $deadline) {
+        if (Test-LocalPortListening -Port $port) { return }
+        Start-Sleep -Seconds 1
+    }
+    throw "Web endpoint did not open port $port before timeout."
+}
 function Start-Game {
     param([scriptblock]$ProgressCallback)
     Initialize-FirstRun
@@ -257,15 +406,26 @@ function Start-Game {
     if (-not (Test-Path ([string]$config.serverExe))) { throw "Server exe not found: $($config.serverExe)" }
     if (-not (Test-Path ([string]$config.clientExe))) { throw "Client exe not found: $($config.clientExe)" }
 
-    $serverRunning = Get-Process -ErrorAction SilentlyContinue | Where-Object { $_.Path -eq ([string]$config.serverExe) }
-    if (-not $serverRunning) {
-        if ($ProgressCallback) { & $ProgressCallback 'Starting local server...' 0 }
-        Start-Process -FilePath ([string]$config.serverExe) -WorkingDirectory ([string]$config.serverWorkingDirectory) -WindowStyle Minimized | Out-Null
+    Ensure-DatabaseServer -Config $config -ProgressCallback $ProgressCallback
+    Ensure-WebEndpoint -Config $config -ProgressCallback $ProgressCallback
+
+    $serverPortsOpen = Wait-ServerPorts -Ports @($config.serverPorts) -TimeoutSeconds 1
+    if (-not $serverPortsOpen) {
+        $serverRunning = Get-Process -ErrorAction SilentlyContinue | Where-Object { $_.Path -eq ([string]$config.serverExe) }
+        if (-not $serverRunning) {
+            if ($ProgressCallback) { & $ProgressCallback 'Starting local server...' 0 }
+            Start-Process -FilePath ([string]$config.serverExe) -WorkingDirectory ([string]$config.serverWorkingDirectory) -WindowStyle Minimized | Out-Null
+        }
     }
     if (-not (Wait-ServerPorts -Ports @($config.serverPorts) -TimeoutSeconds ([int]$config.serverStartupTimeoutSeconds))) {
         throw 'Server did not open expected ports before timeout.'
     }
     if ($ProgressCallback) { & $ProgressCallback 'Starting client...' 100 }
+    Remove-Item Env:\QT_QUICK_BACKEND -ErrorAction SilentlyContinue
+    Remove-Item Env:\QT_OPENGL -ErrorAction SilentlyContinue
+    Remove-Item Env:\QSG_RHI_BACKEND -ErrorAction SilentlyContinue
+    $env:QSG_RENDER_LOOP = 'basic'
+    Write-LauncherLog 'Starting client with basic Qt render loop'
     Start-Process -FilePath ([string]$config.clientExe) -WorkingDirectory ([string]$config.clientWorkingDirectory) | Out-Null
 }
 
@@ -406,3 +566,18 @@ try {
     if ($NoGui -or $SelfTest -or $Repair -or $Play) { throw }
     [System.Windows.Forms.MessageBox]::Show($_.Exception.Message, 'Launcher error') | Out-Null
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

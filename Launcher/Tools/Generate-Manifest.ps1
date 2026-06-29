@@ -9,8 +9,8 @@ Set-StrictMode -Version 2.0
 $ErrorActionPreference = 'Stop'
 if ([string]::IsNullOrWhiteSpace($Output)) { $Output = Join-Path $Root 'manifest.json' }
 
-$excludeRoots = @('UserData','Logs','Backup','.git')
-$excludePatterns = @('manifest.json','version.json','*.tmp','*.log','*.bak*','*.download','*.pdb','*.dmp','crashdump/*','cache/*')
+$excludeRoots = @('UserData','Logs','Backup','Backups','Saves','.git','.github','.vs','.vscode','.idea')
+$excludePatterns = @('.gitignore','.gitattributes','manifest.json','version.json','*.tmp','*.temp','*.log','*.bak*','*.backup','*.download','*.pdb','*.dmp','*.db','*.sqlite','*.sqlite3','*.sql','*.token','*.key','*.pem','crashdump/*','cache/*','Cache/*','tmp/*','temp/*')
 
 function Convert-ToRelativePath([string]$Base, [string]$Path) {
     $rel = $Path.Substring($Base.TrimEnd('\','/').Length).TrimStart('\','/')
@@ -57,4 +57,6 @@ $manifest = [pscustomobject]@{
 }
 $manifest | ConvertTo-Json -Depth 8 | Set-Content -Path $Output -Encoding UTF8
 [pscustomobject]@{Output=$Output; Version=$Version; Files=$files.Count}
+
+
 
