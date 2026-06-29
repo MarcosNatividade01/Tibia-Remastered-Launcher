@@ -1,6 +1,6 @@
 ﻿{
-    "version":  "0.1.7",
-    "generatedAt":  "2026-06-29T15:46:04",
+    "version":  "0.1.8",
+    "generatedAt":  "2026-06-29T16:34:43",
     "files":  [
                   {
                       "path":  "Client/.gitkeep",
@@ -84,8 +84,8 @@
                   },
                   {
                       "path":  "README.md",
-                      "sha256":  "57454616fa703077d0c185dff69f8263c7d27856ce6367500d78d61ce3e769c9",
-                      "size":  1723,
+                      "sha256":  "f1ff31ca10bcc6f083cd5f858ddb569f3e15703ca271168a71e421bc3b8a2735",
+                      "size":  1741,
                       "url":  "https://raw.githubusercontent.com/MarcosNatividade01/Tibia-Remastered-Launcher/main/README.md",
                       "overwrite":  true,
                       "category":  "README.md"
@@ -116,8 +116,8 @@
                   },
                   {
                       "path":  "Start Launcher.bat",
-                      "sha256":  "931083b1447290d2dd55e67fc786dbf65a1138d52fbd8cd8a2273c0e8bba73d1",
-                      "size":  127,
+                      "sha256":  "03f9876c2745bbbede44aa6843eb8c6e2d57fdc3ad5135eaf3c096e908cd197b",
+                      "size":  302,
                       "url":  "https://raw.githubusercontent.com/MarcosNatividade01/Tibia-Remastered-Launcher/main/Start%20Launcher.bat",
                       "overwrite":  true,
                       "category":  "Start Launcher.bat"
@@ -127,6 +127,14 @@
                       "sha256":  "dd12a40ee625dfaac5ad3342c8f0170f86a0dd4aec976f9563b0958f3cbb1b8d",
                       "size":  8863,
                       "url":  "https://raw.githubusercontent.com/MarcosNatividade01/Tibia-Remastered-Launcher/main/Tools/Build-FriendPackage.ps1",
+                      "overwrite":  true,
+                      "category":  "Tools"
+                  },
+                  {
+                      "path":  "Tools/Start-PlayablePackage.ps1",
+                      "sha256":  "93b9ad87dd5c46c5d380af1cc45b2a757c550319b21daeb99eeb6401e8c0b3d0",
+                      "size":  2689,
+                      "url":  "https://raw.githubusercontent.com/MarcosNatividade01/Tibia-Remastered-Launcher/main/Tools/Start-PlayablePackage.ps1",
                       "overwrite":  true,
                       "category":  "Tools"
                   }

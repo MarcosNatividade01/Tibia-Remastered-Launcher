@@ -10,7 +10,7 @@ https://github.com/MarcosNatividade01/Tibia-Remastered-Launcher/releases/latest
 
 Use o arquivo `TibiaRemastered-Friends-*.zip`. Extraia o ZIP, abra `Start Launcher.bat` e clique em `Jogar`.
 
-Nao use o botao `Code > Download ZIP` para jogar. Esse ZIP do GitHub contem apenas o codigo do launcher e nao inclui client, servidor e runtime portatil.
+Se baixar pelo botao `Code > Download ZIP`, abra `Start Launcher.bat`; ele baixa automaticamente o pacote jogavel da Release. Para baixar direto, use a pagina de Releases.
 
 ## Gerar novo pacote portatil
 
